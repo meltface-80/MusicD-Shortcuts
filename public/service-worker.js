@@ -1,7 +1,7 @@
-/* Shortcuts for Roon — service worker. Cache-first app shell, network for API. */
+/* MusicD Shortcuts — service worker. Cache-first app shell, network for API. */
 "use strict";
 
-var CACHE = "roon-shortcuts-v1";
+var CACHE = "musicd-shortcuts-v1";
 var SHELL = [
   "/",
   "/index.html",

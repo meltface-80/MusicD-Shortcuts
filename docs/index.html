@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Shortcuts for Roon — install &amp; docs</title>
+<title>MusicD Shortcuts — install &amp; docs</title>
 <meta name="description" content="A self-hosted Roon extension that plays a random album — optionally by genre — into a Roon zone when you hit a simple GET webhook. Trigger it from an iPhone Shortcut or Siri." />
 <meta name="theme-color" content="#141618" />
 <link rel="icon" href="icon.svg" type="image/svg+xml" />
@@ -255,19 +255,19 @@
 
 <nav class="topnav">
   <div class="wrap">
-    <a class="brand" href="#top">Music<span>D</span></a>
+    <a class="brand" href="#top">Music<span>D</span> Shortcuts</a>
     <a href="#what">What</a>
     <a href="#webhooks">Webhooks</a>
     <a href="#install">Install</a>
     <a href="#shortcut">Shortcuts</a>
     <a href="#faq">FAQ</a>
-    <a class="gh" href="https://github.com/meltface-80/Shortcuts-for-Roon">GitHub &nearr;</a>
+    <a class="gh" href="https://github.com/meltface-80/MusicD-Shortcuts">GitHub &nearr;</a>
   </div>
 </nav>
 
 <header class="hero" id="top">
   <div class="wordmark">Music<span>D</span></div>
-  <h1>Shortcuts for Roon</h1>
+  <h1>MusicD Shortcuts</h1>
   <p class="tag">
     A self-hosted Roon extension that turns "play a random album" into a plain
     web link. Hit the URL and a random album — optionally filtered by genre —
@@ -281,7 +281,7 @@
   </div>
   <div class="hero-cta">
     <a class="btn primary" href="#install">Install with Docker</a>
-    <a class="btn ghost" href="https://github.com/meltface-80/Shortcuts-for-Roon">View on GitHub</a>
+    <a class="btn ghost" href="https://github.com/meltface-80/MusicD-Shortcuts">View on GitHub</a>
   </div>
 </header>
 
@@ -407,24 +407,24 @@
 
       <div class="codebox" data-panel="compose">
         <button class="copy-btn" type="button">Copy</button>
-<pre><code>git clone https://github.com/meltface-80/Shortcuts-for-Roon.git
-cd Shortcuts-for-Roon
+<pre><code>git clone https://github.com/meltface-80/MusicD-Shortcuts.git
+cd MusicD-Shortcuts
 <span class="ip-prefix"></span>docker compose up <span class="k">-d</span></code></pre>
       </div>
 
       <div class="codebox" data-panel="run" hidden>
         <button class="copy-btn" type="button">Copy</button>
 <pre><code><span class="c"># Build the image straight from GitHub — no clone needed</span>
-docker build <span class="k">-t</span> shortcuts-for-roon https://github.com/meltface-80/Shortcuts-for-Roon.git
+docker build <span class="k">-t</span> musicd-shortcuts https://github.com/meltface-80/MusicD-Shortcuts.git
 
 <span class="c"># Run it</span>
 docker run <span class="k">-d</span> \
-  <span class="k">--name</span> shortcuts-for-roon \
+  <span class="k">--name</span> musicd-shortcuts \
   <span class="k">--network</span> host \
   <span class="k">--restart</span> unless-stopped \
   <span class="k">-e</span> PUBLIC_BASE_URL=http://<span class="ip-out" data-ph="YOUR_SERVER_LAN_IP">YOUR_SERVER_LAN_IP</span>:3000 \
-  <span class="k">-v</span> roon-data:/data \
-  shortcuts-for-roon</code></pre>
+  <span class="k">-v</span> musicd-shortcuts-data:/data \
+  musicd-shortcuts</code></pre>
       </div>
 
       <p class="note">
@@ -444,7 +444,7 @@ docker run <span class="k">-d</span> \
         <ol>
           <li>Open <b>Roon</b> on any device connected to your Core.</li>
           <li>Go to <b>Settings &rarr; Extensions</b>.</li>
-          <li>Find <b>"Shortcuts for Roon"</b> in the list and click <b>Enable</b> to pair.</li>
+          <li>Find <b>"MusicD Shortcuts"</b> in the list and click <b>Enable</b> to pair.</li>
           <li>That's it — the dashboard and all six webhooks are now live.</li>
         </ol>
       </div>
@@ -482,7 +482,7 @@ docker run <span class="k">-d</span> \
       <div class="grid">
         <div class="card">
           <h3>In Roon</h3>
-          <p>Open <b>Settings &rarr; Extensions &rarr; Shortcuts for Roon</b>. Pick a genre preset or type a custom genre, choose a zone, and Save. A new webhook is created and its URL is shown as copyable text.</p>
+          <p>Open <b>Settings &rarr; Extensions &rarr; MusicD Shortcuts</b>. Pick a genre preset or type a custom genre, choose a zone, and Save. A new webhook is created and its URL is shown as copyable text.</p>
         </div>
         <div class="card">
           <h3>In the dashboard</h3>
@@ -532,9 +532,9 @@ docker run <span class="k">-d</span> \
 
 <footer>
   <div class="wrap">
-    <p class="brand">Shortcuts for <span>Roon</span></p>
+    <p class="brand">Music<span>D</span> Shortcuts</p>
     <p>Runs locally with your Roon Core · Licensed under MIT ·
-      <a href="https://github.com/meltface-80/Shortcuts-for-Roon">Source on GitHub &nearr;</a></p>
+      <a href="https://github.com/meltface-80/MusicD-Shortcuts">Source on GitHub &nearr;</a></p>
   </div>
 </footer>
 

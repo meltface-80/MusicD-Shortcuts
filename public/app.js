@@ -1,4 +1,4 @@
-/* Shortcuts for Roon — PWA dashboard logic. Vanilla JS, no dependencies. */
+/* MusicD Shortcuts — PWA dashboard logic. Vanilla JS, no dependencies. */
 (function () {
   "use strict";
 

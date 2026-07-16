@@ -1,4 +1,4 @@
-# CLAUDE.md — Shortcuts-for-Roon
+# CLAUDE.md — MusicD-Shortcuts
 
 Guidance for Claude (and humans) working in this repository.
 

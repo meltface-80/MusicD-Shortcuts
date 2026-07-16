@@ -1,4 +1,4 @@
-# Shortcuts for Roon — self-hosted Roon extension
+# MusicD Shortcuts — self-hosted Roon extension
 #
 # HOST NETWORKING IS REQUIRED.
 #   Roon Core discovery uses UDP broadcast (the `sood` module). A bridged
@@ -21,14 +21,14 @@
 # Usage:  docker compose up -d   (then pair in Roon → Settings → Extensions)
 
 services:
-  roon-shortcuts:
+  musicd-shortcuts:
     build: .
-    image: shortcuts-for-roon:latest
-    container_name: roon-shortcuts
+    image: musicd-shortcuts:latest
+    container_name: musicd-shortcuts
     network_mode: host
     restart: unless-stopped
     volumes:
-      - roon-data:/data
+      - musicd-shortcuts-data:/data
     environment:
       DATA_DIR: /data
       PORT: "3000"
@@ -40,4 +40,4 @@ services:
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
 
 volumes:
-  roon-data:
+  musicd-shortcuts-data:

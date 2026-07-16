@@ -1,5 +1,5 @@
 {
-  "name": "shortcuts-for-roon",
+  "name": "musicd-shortcuts",
   "version": "1.0.0",
   "private": true,
   "description": "Roon extension that plays random albums via shareable webhooks for iOS Shortcuts.",

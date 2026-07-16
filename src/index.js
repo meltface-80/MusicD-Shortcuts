@@ -25,7 +25,7 @@ function main() {
   const app = createApp({ roonManager, webhooksRepo, config });
   const server = app.listen(config.PORT, () => {
     // eslint-disable-next-line no-console
-    console.log(`Shortcuts for Roon listening on port ${config.PORT}`);
+    console.log(`MusicD Shortcuts listening on port ${config.PORT}`);
     // eslint-disable-next-line no-console
     console.log(`Dashboard: ${config.PUBLIC_BASE_URL}/`);
   });

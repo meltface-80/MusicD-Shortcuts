@@ -1,6 +1,6 @@
 {
-  "name": "Shortcuts for Roon",
-  "short_name": "Roon Shortcuts",
+  "name": "MusicD Shortcuts",
+  "short_name": "MusicD",
   "description": "Create shareable webhooks that play a random album in Roon — trigger them from iPhone Shortcuts and Siri.",
   "start_url": "/",
   "scope": "/",

@@ -30,8 +30,8 @@ COPY public ./public
 # node:sqlite module, so no native compilation is required.
 FROM node:22-bookworm-slim AS runtime
 
-LABEL org.opencontainers.image.source="https://github.com/meltface-80/Shortcuts-for-Roon" \
-      org.opencontainers.image.title="Shortcuts for Roon" \
+LABEL org.opencontainers.image.source="https://github.com/meltface-80/MusicD-Shortcuts" \
+      org.opencontainers.image.title="MusicD Shortcuts" \
       org.opencontainers.image.description="Roon extension that plays random albums via shareable webhooks for iOS Shortcuts."
 
 WORKDIR /app

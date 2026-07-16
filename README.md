@@ -4,7 +4,7 @@
 
 </div>
 
-# Shortcuts for Roon
+# MusicD Shortcuts
 
 A self-hosted **Roon extension** that plays a **random album** — optionally
 filtered by genre — into a Roon zone when you hit a simple `GET` webhook URL.
@@ -14,7 +14,7 @@ HTTP-shortcut apps): tap an icon or say *"Hey Siri, Play Random Jazz."*
 It pairs with your Roon Core over the LAN and serves a small web dashboard (PWA)
 for creating and copying webhook URLs. No cloud, no account, no subscription.
 
-**Website & full guide:** https://meltface-80.github.io/Shortcuts-for-Roon/
+**Website & full guide:** https://meltface-80.github.io/MusicD-Shortcuts/
 
 ## Six ready-made webhooks
 
@@ -30,7 +30,7 @@ Seeded automatically on first run:
 | Random Trip-Hop | `/w/random-trip-hop` |
 
 Create your own for any genre in your library — either in **Roon → Settings →
-Extensions → Shortcuts for Roon**, or in the built-in dashboard.
+Extensions → MusicD Shortcuts**, or in the built-in dashboard.
 
 Webhook URL shape: `http://<YOUR_SERVER_LAN_IP>:3000/w/<slug>` ·
 dashboard: `http://<YOUR_SERVER_LAN_IP>:3000/`
@@ -41,15 +41,15 @@ Host networking is required on Linux so the extension can discover your Roon
 Core over UDP broadcast.
 
 ```bash
-git clone https://github.com/meltface-80/Shortcuts-for-Roon.git
-cd Shortcuts-for-Roon
+git clone https://github.com/meltface-80/MusicD-Shortcuts.git
+cd MusicD-Shortcuts
 # (optional) edit docker-compose.yml to set:
 #   PUBLIC_BASE_URL=http://YOUR_SERVER_LAN_IP:3000
 docker compose up -d
 ```
 
 Then open **Roon → Settings → Extensions** and click **Enable** next to
-"Shortcuts for Roon" to pair. Set `PUBLIC_BASE_URL` to this server's LAN address
+"MusicD Shortcuts" to pair. Set `PUBLIC_BASE_URL` to this server's LAN address
 so the webhook URLs shown are reachable from your phone (otherwise a LAN IP is
 auto-detected).
 

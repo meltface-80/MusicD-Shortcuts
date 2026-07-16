@@ -30,7 +30,7 @@ function createApp({ roonManager, webhooksRepo, config }) {
   app.use(express.static(PUBLIC_DIR));
   app.get('/', (req, res) => {
     res.sendFile(path.join(PUBLIC_DIR, 'index.html'), (err) => {
-      if (err) res.status(200).type('text/plain').send('Shortcuts for Roon is running.');
+      if (err) res.status(200).type('text/plain').send('MusicD Shortcuts is running.');
     });
   });
 

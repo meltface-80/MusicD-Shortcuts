@@ -37,12 +37,12 @@ function loadConfig(env = process.env) {
     DB_PATH,
     PUBLIC_BASE_URL,
     // Roon extension metadata (overridable via env).
-    ROON_EXTENSION_ID: env.ROON_EXTENSION_ID || 'com.shortcutsforroon.extension',
-    ROON_DISPLAY_NAME: env.ROON_DISPLAY_NAME || 'Shortcuts for Roon',
+    ROON_EXTENSION_ID: env.ROON_EXTENSION_ID || 'com.musicd.shortcuts',
+    ROON_DISPLAY_NAME: env.ROON_DISPLAY_NAME || 'MusicD Shortcuts',
     ROON_DISPLAY_VERSION: env.ROON_DISPLAY_VERSION || '1.0.0',
-    ROON_PUBLISHER: env.ROON_PUBLISHER || 'Shortcuts for Roon',
-    ROON_EMAIL: env.ROON_EMAIL || 'shortcuts-for-roon@example.com',
-    ROON_WEBSITE: env.ROON_WEBSITE || 'https://github.com/meltface-80/Shortcuts-for-Roon',
+    ROON_PUBLISHER: env.ROON_PUBLISHER || 'MusicD Shortcuts',
+    ROON_EMAIL: env.ROON_EMAIL || 'musicd-shortcuts@example.com',
+    ROON_WEBSITE: env.ROON_WEBSITE || 'https://github.com/meltface-80/MusicD-Shortcuts',
   };
 }
 
