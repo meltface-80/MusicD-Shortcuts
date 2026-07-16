@@ -1,7 +1,15 @@
 node_modules/
 data/
 .git/
+.gitignore
 *.log
 .DS_Store
 docs/
 test/
+# Docker/build meta and repo docs — not needed inside the image.
+# NOTE: public/ is intentionally NOT ignored; the runtime serves it.
+Dockerfile
+docker-compose.yml
+.dockerignore
+*.md
+LICENSE

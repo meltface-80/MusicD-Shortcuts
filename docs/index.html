@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Shortcuts for Roon — install &amp; docs</title>
+<meta name="description" content="A self-hosted Roon extension that plays a random album — optionally by genre — into a Roon zone when you hit a simple GET webhook. Trigger it from an iPhone Shortcut or Siri." />
+<meta name="theme-color" content="#141618" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<style>
+  :root {
+    --bg:        #1b1d1f;   /* charcoal */
+    --bg-deep:   #141618;
+    --panel:     #232628;
+    --panel-2:   #2a2d30;
+    --line:      #35393d;
+    --text:      #e8e6e3;
+    --muted:     #a8a49e;
+    --copper:    #c47f4a;   /* subtle copper accent */
+    --copper-hi: #d99a66;
+    --copper-dim:#8a5a35;
+    --good:      #7fb47f;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--copper-hi); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+
+  /* ---------- top nav ---------- */
+  nav.topnav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(20,22,24,.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav.topnav .wrap {
+    display: flex; align-items: center; gap: 18px;
+    height: 52px; overflow-x: auto; white-space: nowrap;
+  }
+  nav.topnav a { color: var(--muted); font-size: 14px; font-weight: 500; }
+  nav.topnav a:hover { color: var(--copper-hi); text-decoration: none; }
+  nav.topnav .brand { color: var(--text); font-weight: 700; letter-spacing: .02em; }
+  nav.topnav .brand span { color: var(--copper); }
+  nav.topnav .gh { margin-left: auto; }
+
+  /* ---------- hero ---------- */
+  header.hero {
+    text-align: center;
+    padding: 48px 20px 40px;
+    background:
+      radial-gradient(ellipse 70% 55% at 50% -10%, rgba(196,127,74,.14), transparent 65%),
+      var(--bg-deep);
+    border-bottom: 1px solid var(--line);
+  }
+  header.hero img.logo {
+    width: 92px; height: 92px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.45);
+  }
+  header.hero h1 { font-size: 30px; margin-top: 22px; font-weight: 700; letter-spacing: .01em; }
+  header.hero p.tag { color: var(--muted); max-width: 640px; margin: 12px auto 0; font-size: 16px; }
+  .badges { margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .badge {
+    display: inline-block; font-size: 12.5px; font-weight: 600;
+    padding: 4px 12px; border-radius: 999px;
+    border: 1px solid var(--copper-dim); color: var(--copper-hi);
+    background: rgba(196,127,74,.08);
+  }
+  .badge.plain { border-color: var(--line); color: var(--muted); background: transparent; }
+  .hero-cta { margin-top: 22px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; font-size: 14.5px; font-weight: 650;
+    padding: 9px 18px; border-radius: 9px; cursor: pointer;
+  }
+  .btn.primary { background: var(--copper); color: #17110b; border: 1px solid var(--copper); }
+  .btn.primary:hover { background: var(--copper-hi); text-decoration: none; }
+  .btn.ghost { color: var(--text); border: 1px solid var(--line); background: var(--panel); }
+  .btn.ghost:hover { border-color: var(--copper); color: var(--copper-hi); text-decoration: none; }
+
+  /* ---------- sections ---------- */
+  section { padding: 52px 0 8px; scroll-margin-top: 56px; }
+  section > .wrap > h2 {
+    font-size: 24px; font-weight: 700; margin-bottom: 6px;
+    padding-left: 14px; border-left: 3px solid var(--copper);
+  }
+  section > .wrap > p.lead { color: var(--muted); margin-bottom: 26px; max-width: 720px; }
+
+  /* ---------- feature grid ---------- */
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 18px 16px;
+  }
+  .card h3 { font-size: 15.5px; font-weight: 650; margin-bottom: 6px; }
+  .card h3 .em { margin-right: 8px; }
+  .card p { font-size: 13.5px; color: var(--muted); }
+
+  /* ---------- webhook table ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { background: var(--panel-2); color: var(--copper-hi); font-size: 12.5px; letter-spacing: .04em; text-transform: uppercase; }
+  tr:last-child td { border-bottom: none; }
+  td.mono { font-family: var(--mono); white-space: nowrap; color: var(--copper-hi); }
+  td { color: var(--muted); }
+  td.name { color: var(--text); font-weight: 600; }
+
+  /* ---------- code boxes ---------- */
+  .code-label { font-weight: 650; font-size: 13.5px; margin: 22px 0 8px; color: var(--muted); }
+  .code-label:first-of-type { margin-top: 0; }
+  .codebox { position: relative; margin-bottom: 6px; }
+  .codebox pre {
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px; padding-top: 40px;
+    overflow-x: auto;
+    font: 13px/1.55 var(--mono);
+    color: #d8d4cf;
+    white-space: pre;
+  }
+  .codebox pre .k { color: var(--copper-hi); }     /* flags / keys */
+  .codebox pre .c { color: #77726c; }              /* comments */
+  .copy-btn {
+    position: absolute; top: 10px; right: 10px;
+    font: 600 12px var(--sans); cursor: pointer;
+    color: var(--text); background: var(--panel-2);
+    border: 1px solid var(--line); border-radius: 7px;
+    padding: 6px 12px;
+  }
+  .copy-btn:hover { border-color: var(--copper); color: var(--copper-hi); }
+  .copy-btn.done { color: var(--good); border-color: var(--good); }
+
+  p code, li code, td code, .note code {
+    font: 12.5px var(--mono);
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 5px; padding: 1.5px 6px;
+    color: var(--copper-hi);
+  }
+
+  /* ---------- numbered steps ---------- */
+  .steps { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; }
+  .steps ol { padding-left: 20px; font-size: 14px; display: grid; gap: 10px; color: var(--muted); }
+  .steps ol li::marker { color: var(--copper); font-weight: 700; }
+  .steps ol li b, .steps ol li strong { color: var(--text); }
+
+  /* ---------- note ---------- */
+  .note {
+    font-size: 13px; color: var(--muted);
+    background: rgba(196,127,74,.06);
+    border: 1px solid var(--copper-dim);
+    border-radius: 10px; padding: 12px 14px;
+    margin-top: 16px;
+  }
+  .note b { color: var(--copper-hi); }
+
+  /* ---------- FAQ ---------- */
+  details.faq {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 2px 16px;
+    margin-bottom: 10px;
+  }
+  details.faq summary {
+    cursor: pointer; font-weight: 650; font-size: 14.5px;
+    padding: 13px 0; list-style: none;
+  }
+  details.faq summary::-webkit-details-marker { display: none; }
+  details.faq summary::after { content: "+"; float: right; color: var(--copper); font-weight: 700; }
+  details.faq[open] summary::after { content: "\2212"; }
+  details.faq p { color: var(--muted); font-size: 13.5px; margin: 0 0 13px; }
+
+  /* ---------- small screens ---------- */
+  @media (max-width: 600px) {
+    header.hero { padding: 32px 16px 30px; }
+    header.hero h1 { font-size: 24px; margin-top: 18px; }
+    section { padding: 40px 0 6px; }
+    section > .wrap > h2 { font-size: 21px; }
+    .codebox pre { font-size: 12px; padding: 14px; padding-top: 40px; }
+    th, td { padding: 9px 10px; }
+  }
+
+  footer {
+    margin-top: 64px; padding: 28px 20px 40px;
+    border-top: 1px solid var(--line);
+    text-align: center; font-size: 13px; color: var(--muted);
+  }
+  footer .brand { color: var(--text); font-weight: 700; }
+  footer .brand span { color: var(--copper); }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap">
+    <a class="brand" href="#top">Shortcuts for <span>Roon</span></a>
+    <a href="#what">What</a>
+    <a href="#webhooks">Webhooks</a>
+    <a href="#install">Install</a>
+    <a href="#shortcut">Shortcuts</a>
+    <a href="#faq">FAQ</a>
+    <a class="gh" href="https://github.com/meltface-80/Shortcuts-for-Roon">GitHub &nearr;</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <img class="logo" src="icon.svg" alt="Shortcuts for Roon" />
+  <h1>Play a random album with a tap — or by asking Siri.</h1>
+  <p class="tag">
+    A self-hosted Roon extension that turns "play a random album" into a plain
+    web link. Hit the URL and a random album — optionally filtered by genre —
+    starts playing in the Roon zone you choose. Perfect for an iPhone Shortcut.
+  </p>
+  <div class="badges">
+    <span class="badge">Docker</span>
+    <span class="badge">iOS Shortcuts</span>
+    <span class="badge">Self-hosted</span>
+    <span class="badge plain">No cloud · MIT</span>
+  </div>
+  <div class="hero-cta">
+    <a class="btn primary" href="#install">Install with Docker</a>
+    <a class="btn ghost" href="https://github.com/meltface-80/Shortcuts-for-Roon">View on GitHub</a>
+  </div>
+</header>
+
+<main>
+
+  <section id="what">
+    <div class="wrap">
+      <h2>What it does</h2>
+      <p class="lead">
+        Runs alongside your Roon Core on your own network. No cloud, no account,
+        no subscription — just a small server that listens for webhook hits and
+        drives playback through Roon's own API.
+      </p>
+      <div class="grid">
+        <div class="card">
+          <h3><span class="em">🎲</span>Random album, instantly</h3>
+          <p>Each hit picks a fresh random album — any album, or one from a genre you choose — and plays it now in your target zone.</p>
+        </div>
+        <div class="card">
+          <h3><span class="em">🔗</span>Just a GET URL</h3>
+          <p>Webhooks are plain <code>GET</code> links, so iPhone Shortcuts' "Get Contents of URL" works with zero fuss. Siri-friendly too.</p>
+        </div>
+        <div class="card">
+          <h3><span class="em">📋</span>Built-in dashboard</h3>
+          <p>A small web app (PWA) lets you create, rename, copy, and delete webhooks, and test them with one tap.</p>
+        </div>
+        <div class="card">
+          <h3><span class="em">🏠</span>Fully local</h3>
+          <p>Pairs with your Core over the LAN. Your pairing and webhooks persist on disk. Nothing leaves your network.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="webhooks">
+    <div class="wrap">
+      <h2>The six ready-made webhooks</h2>
+      <p class="lead">
+        These are seeded automatically the first time it runs, so you have
+        something to try immediately. Add your own any time.
+      </p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Webhook</th><th>URL slug</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Any Album</td><td class="mono">/w/any-album</td></tr>
+            <tr><td class="name">Random Pop/Rock</td><td class="mono">/w/random-pop-rock</td></tr>
+            <tr><td class="name">Random Metal</td><td class="mono">/w/random-metal</td></tr>
+            <tr><td class="name">Random Jazz</td><td class="mono">/w/random-jazz</td></tr>
+            <tr><td class="name">Random Electronic</td><td class="mono">/w/random-electronic</td></tr>
+            <tr><td class="name">Random Trip-Hop</td><td class="mono">/w/random-trip-hop</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">
+        Full URL shape: <code>http://&lt;YOUR_SERVER_LAN_IP&gt;:3000/w/&lt;slug&gt;</code>.
+        The dashboard lives at <code>http://&lt;YOUR_SERVER_LAN_IP&gt;:3000/</code>.
+      </p>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <h2>Install with Docker</h2>
+      <p class="lead">
+        Runs in a container. Host networking is required on Linux so the
+        extension can discover your Roon Core over UDP broadcast.
+      </p>
+
+      <p class="code-label">Recommended — clone and Docker Compose</p>
+      <div class="codebox">
+        <button class="copy-btn" type="button">Copy</button>
+<pre><code><span class="c">git clone https://github.com/meltface-80/Shortcuts-for-Roon.git</span>
+cd Shortcuts-for-Roon
+<span class="c"># (optional) edit docker-compose.yml to set:</span>
+<span class="c">#   PUBLIC_BASE_URL=http://YOUR_SERVER_LAN_IP:3000</span>
+docker compose up <span class="k">-d</span></code></pre>
+      </div>
+
+      <p class="code-label">Or build and run plain Docker</p>
+      <div class="codebox">
+        <button class="copy-btn" type="button">Copy</button>
+<pre><code>docker build <span class="k">-t</span> shortcuts-for-roon .
+
+docker run <span class="k">-d</span> <span class="k">--name</span> shortcuts-for-roon <span class="k">--network</span> host \
+  <span class="k">-e</span> PUBLIC_BASE_URL=http://YOUR_SERVER_LAN_IP:3000 \
+  <span class="k">-v</span> roon-data:/data <span class="k">--restart</span> unless-stopped shortcuts-for-roon</code></pre>
+      </div>
+
+      <p class="note">
+        Set <code>PUBLIC_BASE_URL</code> to this server's LAN address so the
+        webhook URLs shown in the dashboard are reachable from your phone. If left unset,
+        the app auto-detects a LAN IP, which usually works. The extension builds from the
+        official RoonLabs GitHub repos as git dependencies — <b>no vendored tarballs</b>.
+      </p>
+    </div>
+  </section>
+
+  <section id="pair">
+    <div class="wrap">
+      <h2>Pair with Roon</h2>
+      <p class="lead">One-time step after the container starts.</p>
+      <div class="steps">
+        <ol>
+          <li>Open <b>Roon</b> on any device connected to your Core.</li>
+          <li>Go to <b>Settings &rarr; Extensions</b>.</li>
+          <li>Find <b>"Shortcuts for Roon"</b> in the list and click <b>Enable</b> to pair.</li>
+          <li>That's it — the dashboard and all six webhooks are now live.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="shortcut">
+    <div class="wrap">
+      <h2>Add it to an iPhone Shortcut</h2>
+      <p class="lead">Turn any webhook into a one-tap icon or a Siri phrase.</p>
+      <div class="steps">
+        <ol>
+          <li>Copy a webhook URL from the dashboard (or from the Roon extension settings).</li>
+          <li>On your iPhone, open the <b>Shortcuts</b> app, tap <b>+</b>, and add the action <b>Get Contents of URL</b>.</li>
+          <li>Paste the webhook URL. Make sure <b>Method</b> is <b>GET</b> (tap "Show More" if you don't see it).</li>
+          <li>Name the shortcut naturally, e.g. <b>"Play Random Jazz"</b> — Siri responds to that exact phrase.</li>
+          <li>Optionally add it to your <b>Home Screen</b> as an icon, or drop it in a widget.</li>
+          <li>Trigger it by tapping, or say <b>"Hey Siri, Play Random Jazz"</b> while on your home Wi-Fi.</li>
+        </ol>
+      </div>
+      <p class="note">
+        <b>Android:</b> use an HTTP-request shortcut app (such as "HTTP Request Shortcuts")
+        and point it at the same GET URL. Either way, your phone must be on the same LAN
+        as the server for the URL to be reachable — unless you expose it yourself.
+      </p>
+    </div>
+  </section>
+
+  <section id="custom">
+    <div class="wrap">
+      <h2>Create your own genres</h2>
+      <p class="lead">
+        Not limited to the six presets — build a webhook for any genre in your library.
+      </p>
+      <div class="grid">
+        <div class="card">
+          <h3>In Roon</h3>
+          <p>Open <b>Settings &rarr; Extensions &rarr; Shortcuts for Roon</b>. Pick a genre preset or type a custom genre, choose a zone, and Save. A new webhook is created and its URL is shown as copyable text.</p>
+        </div>
+        <div class="card">
+          <h3>In the dashboard</h3>
+          <p>Open the dashboard in a browser to create, rename, copy, and delete webhooks. Pick a preset or a custom genre and a zone, then copy the URL straight into a Shortcut.</p>
+        </div>
+      </div>
+      <p class="note">
+        The genre must exist in your Roon library — Roon only lists genres that actually
+        have content. A missing genre fails gracefully with a clear message.
+      </p>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <h2>How it works &amp; FAQ</h2>
+      <p class="lead">The short version of the technical details.</p>
+
+      <details class="faq">
+        <summary>Why does it need host networking?</summary>
+        <p>Roon Core discovery uses UDP broadcast. A bridged Docker network won't receive those broadcasts, so the extension could never find or pair with your Core. <code>network_mode: host</code> puts the container directly on your LAN. This is a Linux feature and is not fully supported on Docker Desktop for macOS/Windows.</p>
+      </details>
+
+      <details class="faq">
+        <summary>What is PUBLIC_BASE_URL for?</summary>
+        <p>The dashboard and Roon settings display webhook URLs for you to paste into Shortcuts. Set <code>PUBLIC_BASE_URL</code> to this server's LAN address (e.g. <code>http://192.168.1.50:3000</code>) so those URLs are reachable from your iPhone. If unset, the app auto-detects a LAN IP.</p>
+      </details>
+
+      <details class="faq">
+        <summary>Will my webhooks and pairing survive a restart?</summary>
+        <p>Yes. Roon's pairing token (<code>config.json</code>) and the SQLite <code>webhooks.db</code> both live in the <code>/data</code> volume, so they persist across container recreation.</p>
+      </details>
+
+      <details class="faq">
+        <summary>Why are the webhooks GET requests?</summary>
+        <p>iPhone Shortcuts' "Get Contents of URL" defaults to GET, so a GET webhook works with no extra configuration. Each hit is side-effecting — it plays a fresh random album — but there's nothing to POST.</p>
+      </details>
+
+      <details class="faq">
+        <summary>Does it need a cloud account or subscription?</summary>
+        <p>No. There's no cloud service, no account, and no credentials. It runs entirely on your own network next to your Roon Core.</p>
+      </details>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="brand">Shortcuts for <span>Roon</span></p>
+    <p>Runs locally with your Roon Core · Licensed under MIT ·
+      <a href="https://github.com/meltface-80/Shortcuts-for-Roon">Source on GitHub &nearr;</a></p>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.copy-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var pre = btn.parentElement.querySelector('pre');
+      var text = pre ? pre.innerText : '';
+      var done = function () {
+        btn.textContent = 'Copied';
+        btn.classList.add('done');
+        setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1600);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function () { fallback(text, done); });
+      } else {
+        fallback(text, done);
+      }
+    });
+  });
+  function fallback(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+</script>
+
+</body>
+</html>

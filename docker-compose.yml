@@ -1,0 +1,40 @@
+# Shortcuts for Roon — self-hosted Roon extension
+#
+# HOST NETWORKING IS REQUIRED.
+#   Roon Core discovery uses UDP broadcast (the `sood` module). A bridged
+#   Docker network will NOT receive those broadcasts, so the extension would
+#   never find or pair with your Core. `network_mode: host` puts the container
+#   directly on your LAN so discovery + pairing work. With host networking the
+#   app listens on PORT (default 3000) directly on the host — published/mapped
+#   ports are ignored, so there is no `ports:` section here.
+#   (Host networking is a Linux feature; on Docker Desktop for macOS/Windows it
+#   is not fully supported.)
+#
+# SET PUBLIC_BASE_URL.
+#   The dashboard and Roon settings show webhook URLs for you to paste into iOS
+#   Shortcuts. Those URLs must be reachable from your iPhone, so set
+#   PUBLIC_BASE_URL to this server's LAN address, e.g.
+#     PUBLIC_BASE_URL=http://192.168.1.50:3000
+#   If left unset the app auto-detects a LAN IP, which usually works but pin it
+#   explicitly if the shown URLs are wrong.
+#
+# Usage:  docker compose up -d   (then pair in Roon → Settings → Extensions)
+
+services:
+  roon-shortcuts:
+    build: .
+    image: shortcuts-for-roon:latest
+    container_name: roon-shortcuts
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - roon-data:/data
+    environment:
+      DATA_DIR: /data
+      PORT: "3000"
+      # Uncomment and set to this server's LAN IP so webhook URLs are
+      # reachable from your iPhone:
+      # PUBLIC_BASE_URL: http://YOUR_SERVER_LAN_IP:3000
+
+volumes:
+  roon-data:
