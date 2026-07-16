@@ -117,6 +117,26 @@
   td { color: var(--muted); }
   td.name { color: var(--text); font-weight: 600; }
 
+  /* ---------- webhook link list ---------- */
+  .hooklist { display: grid; gap: 10px; }
+  .hookrow {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .hookrow-main { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+  .hookrow-name { font-weight: 650; font-size: 14px; }
+  .hookrow-url { font-family: var(--mono); font-size: 12.5px; color: var(--copper-hi); word-break: break-all; }
+  .hookrow-url:hover { text-decoration: underline; }
+  .copy-url {
+    flex: 0 0 auto; align-self: center;
+    font: 600 12px var(--sans); cursor: pointer;
+    color: var(--text); background: var(--panel-2);
+    border: 1px solid var(--line); border-radius: 7px; padding: 8px 16px;
+  }
+  .copy-url:hover { border-color: var(--copper); color: var(--copper-hi); }
+  .copy-url.done { color: var(--good); border-color: var(--good); }
+
   /* ---------- code boxes ---------- */
   .code-label { font-weight: 650; font-size: 13.5px; margin: 22px 0 8px; color: var(--muted); }
   .code-label:first-of-type { margin-top: 0; }
@@ -289,25 +309,67 @@
     <div class="wrap">
       <h2>The six ready-made webhooks</h2>
       <p class="lead">
-        These are seeded automatically the first time it runs, so you have
-        something to try immediately. Add your own any time.
+        Seeded automatically the first time it runs. Enter your server's IP below and
+        each one becomes a full, copyable link — paste it straight into a Shortcut.
       </p>
-      <div class="tablewrap">
-        <table>
-          <thead><tr><th>Webhook</th><th>URL slug</th></tr></thead>
-          <tbody>
-            <tr><td class="name">Any Album</td><td class="mono">/w/any-album</td></tr>
-            <tr><td class="name">Random Pop/Rock</td><td class="mono">/w/random-pop-rock</td></tr>
-            <tr><td class="name">Random Metal</td><td class="mono">/w/random-metal</td></tr>
-            <tr><td class="name">Random Jazz</td><td class="mono">/w/random-jazz</td></tr>
-            <tr><td class="name">Random Electronic</td><td class="mono">/w/random-electronic</td></tr>
-            <tr><td class="name">Random Trip-Hop</td><td class="mono">/w/random-trip-hop</td></tr>
-          </tbody>
-        </table>
+
+      <div class="ipcfg">
+        <label for="ipInputTop">Your Roon server's LAN IP address</label>
+        <input id="ipInputTop" class="ip-input" type="text" inputmode="decimal"
+               autocomplete="off" spellcheck="false" placeholder="192.168.1.50" />
+        <p class="hint">Fills in every webhook link below (and the install command).</p>
       </div>
+
+      <div class="hooklist">
+        <div class="hookrow">
+          <div class="hookrow-main">
+            <span class="hookrow-name">Any Album</span>
+            <a class="hookrow-url" data-slug="any-album" href="http://YOUR_SERVER_LAN_IP:3000/w/any-album">http://YOUR_SERVER_LAN_IP:3000/w/any-album</a>
+          </div>
+          <button class="copy-url" type="button">Copy</button>
+        </div>
+        <div class="hookrow">
+          <div class="hookrow-main">
+            <span class="hookrow-name">Random Pop/Rock</span>
+            <a class="hookrow-url" data-slug="random-pop-rock" href="http://YOUR_SERVER_LAN_IP:3000/w/random-pop-rock">http://YOUR_SERVER_LAN_IP:3000/w/random-pop-rock</a>
+          </div>
+          <button class="copy-url" type="button">Copy</button>
+        </div>
+        <div class="hookrow">
+          <div class="hookrow-main">
+            <span class="hookrow-name">Random Metal</span>
+            <a class="hookrow-url" data-slug="random-metal" href="http://YOUR_SERVER_LAN_IP:3000/w/random-metal">http://YOUR_SERVER_LAN_IP:3000/w/random-metal</a>
+          </div>
+          <button class="copy-url" type="button">Copy</button>
+        </div>
+        <div class="hookrow">
+          <div class="hookrow-main">
+            <span class="hookrow-name">Random Jazz</span>
+            <a class="hookrow-url" data-slug="random-jazz" href="http://YOUR_SERVER_LAN_IP:3000/w/random-jazz">http://YOUR_SERVER_LAN_IP:3000/w/random-jazz</a>
+          </div>
+          <button class="copy-url" type="button">Copy</button>
+        </div>
+        <div class="hookrow">
+          <div class="hookrow-main">
+            <span class="hookrow-name">Random Electronic</span>
+            <a class="hookrow-url" data-slug="random-electronic" href="http://YOUR_SERVER_LAN_IP:3000/w/random-electronic">http://YOUR_SERVER_LAN_IP:3000/w/random-electronic</a>
+          </div>
+          <button class="copy-url" type="button">Copy</button>
+        </div>
+        <div class="hookrow">
+          <div class="hookrow-main">
+            <span class="hookrow-name">Random Trip-Hop</span>
+            <a class="hookrow-url" data-slug="random-trip-hop" href="http://YOUR_SERVER_LAN_IP:3000/w/random-trip-hop">http://YOUR_SERVER_LAN_IP:3000/w/random-trip-hop</a>
+          </div>
+          <button class="copy-url" type="button">Copy</button>
+        </div>
+      </div>
+
       <p class="note">
-        Full URL shape: <code>http://<span class="ip-out" data-ph="&lt;YOUR_SERVER_LAN_IP&gt;">&lt;YOUR_SERVER_LAN_IP&gt;</span>:3000/w/&lt;slug&gt;</code>.
-        The dashboard lives at <code>http://<span class="ip-out" data-ph="&lt;YOUR_SERVER_LAN_IP&gt;">&lt;YOUR_SERVER_LAN_IP&gt;</span>:3000/</code>.
+        Don't know your IP yet? Start the container first (see <a href="#install">Install</a>) —
+        it's the address of the machine running Roon. The dashboard, where you can also
+        create your own webhooks, lives at
+        <code>http://<span class="ip-out" data-ph="YOUR_SERVER_LAN_IP">YOUR_SERVER_LAN_IP</span>:3000/</code>.
       </p>
     </div>
   </section>
@@ -322,7 +384,7 @@
 
       <div class="ipcfg">
         <label for="ipInput">Your Roon server's LAN IP address</label>
-        <input id="ipInput" type="text" inputmode="decimal" autocomplete="off"
+        <input id="ipInput" class="ip-input" type="text" inputmode="decimal" autocomplete="off"
                spellcheck="false" placeholder="192.168.1.50" aria-describedby="ipHint" />
         <p class="hint" id="ipHint">Type it in and the commands and URLs below update automatically — copy them ready to run.</p>
       </div>
@@ -446,57 +508,78 @@ cd Shortcuts-for-Roon
 </footer>
 
 <script>
-  // Live server-IP substitution: fill the field and every command/URL updates.
-  (function () {
-    var input = document.getElementById('ipInput');
-    var slots = document.querySelectorAll('.ip-out');
-    var prefixes = document.querySelectorAll('.ip-prefix');
-    if (!input) return;
-    function apply(v) {
-      v = (v || '').trim();
-      slots.forEach(function (s) {
-        s.textContent = v || s.dataset.ph;
-        s.classList.toggle('set', !!v);
-      });
-      // Inject a real, runnable env prefix onto the compose command when set.
-      prefixes.forEach(function (p) {
-        p.textContent = v ? ('PUBLIC_BASE_URL=http://' + v + ':3000 ') : '';
-      });
+  // Shared clipboard helper with a "Copied" flash on the button.
+  function copyText(text, btn) {
+    var done = function () {
+      btn.textContent = 'Copied';
+      btn.classList.add('done');
+      setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done); });
+    } else {
+      fallbackCopy(text, done);
     }
-    var KEY = 'sfr-server-ip';
-    try {
-      var saved = localStorage.getItem(KEY) || '';
-      if (saved) { input.value = saved; apply(saved); }
-    } catch (e) {}
-    input.addEventListener('input', function () {
-      apply(input.value);
-      try { localStorage.setItem(KEY, input.value.trim()); } catch (e) {}
-    });
-  })();
-
-  document.querySelectorAll('.copy-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var pre = btn.parentElement.querySelector('pre');
-      var text = pre ? pre.innerText : '';
-      var done = function () {
-        btn.textContent = 'Copied';
-        btn.classList.add('done');
-        setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1600);
-      };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done, function () { fallback(text, done); });
-      } else {
-        fallback(text, done);
-      }
-    });
-  });
-  function fallback(text, done) {
+  }
+  function fallbackCopy(text, done) {
     var ta = document.createElement('textarea');
     ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
     document.body.appendChild(ta); ta.select();
     try { document.execCommand('copy'); done(); } catch (e) {}
     document.body.removeChild(ta);
   }
+
+  // Live server-IP: fill any IP field and every webhook link + the install
+  // command update. Both IP fields stay in sync.
+  (function () {
+    var inputs = document.querySelectorAll('.ip-input');
+    var slots = document.querySelectorAll('.ip-out');
+    var prefixes = document.querySelectorAll('.ip-prefix');
+    var hookUrls = document.querySelectorAll('.hookrow-url');
+    if (!inputs.length) return;
+    var KEY = 'sfr-server-ip';
+    function apply(v) {
+      v = (v || '').trim();
+      slots.forEach(function (s) { s.textContent = v || s.dataset.ph; s.classList.toggle('set', !!v); });
+      prefixes.forEach(function (p) { p.textContent = v ? ('PUBLIC_BASE_URL=http://' + v + ':3000 ') : ''; });
+      var host = v || 'YOUR_SERVER_LAN_IP';
+      hookUrls.forEach(function (a) {
+        var url = 'http://' + host + ':3000/w/' + a.dataset.slug;
+        a.textContent = url;
+        a.setAttribute('href', url);
+      });
+    }
+    function syncInputs(v, except) {
+      inputs.forEach(function (i) { if (i !== except) i.value = v; });
+    }
+    var saved = '';
+    try { saved = localStorage.getItem(KEY) || ''; } catch (e) {}
+    if (saved) syncInputs(saved);
+    apply(saved);
+    inputs.forEach(function (input) {
+      input.addEventListener('input', function () {
+        syncInputs(input.value, input);
+        apply(input.value);
+        try { localStorage.setItem(KEY, input.value.trim()); } catch (e) {}
+      });
+    });
+  })();
+
+  // Copy buttons for code boxes.
+  document.querySelectorAll('.copy-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var pre = btn.parentElement.querySelector('pre');
+      copyText(pre ? pre.innerText : '', btn);
+    });
+  });
+
+  // Copy buttons for individual webhook links.
+  document.querySelectorAll('.copy-url').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var a = btn.parentElement.querySelector('.hookrow-url');
+      copyText(a ? a.textContent : '', btn);
+    });
+  });
 </script>
 
 </body>
