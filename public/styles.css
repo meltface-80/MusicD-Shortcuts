@@ -137,8 +137,11 @@ h1, h2, h3 { line-height: 1.25; margin: 0; }
 .panel__hint { margin: 0 0 .9rem; color: var(--text-muted); font-size: .9rem; }
 
 /* Cards ------------------------------------------------------------------- */
-.cards { display: grid; gap: .8rem; }
+/* minmax(0,1fr) lets the single column shrink below its content width so the
+   long webhook URLs don't force the card (and the page) wider than the phone. */
+.cards { display: grid; gap: .8rem; grid-template-columns: minmax(0, 1fr); }
 .card {
+  min-width: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface-2);
@@ -164,7 +167,7 @@ h1, h2, h3 { line-height: 1.25; margin: 0; }
   border-color: color-mix(in srgb, var(--warn) 30%, transparent);
 }
 
-.url-row { display: flex; gap: .4rem; align-items: stretch; }
+.url-row { display: flex; gap: .4rem; align-items: stretch; min-width: 0; }
 .url {
   flex: 1 1 auto;
   min-width: 0;
