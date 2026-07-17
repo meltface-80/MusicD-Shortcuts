@@ -50,8 +50,9 @@ function apiRoutes({ roonManager, webhooksRepo }) {
         ? body.genres.map((g) => String(g).trim()).filter(Boolean)
         : null;
       if (names && names.length) {
+        data.genreNames = names;
         data.genres = parseGenres(names);
-        data.genre = names.join(' & ');
+        data.genre = names.join(', ');
       } else {
         data.genre = body.genre != null ? body.genre : null;
         data.genrePath = body.genrePath != null ? body.genrePath : null;

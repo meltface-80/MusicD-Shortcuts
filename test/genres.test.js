@@ -34,7 +34,59 @@ test('getPreset returns undefined for unknown key', () => {
 
 /* --- multi-genre + count helpers ---------------------------------------- */
 
-const { genreNameToCandidates, parseGenres, clampCount, MAX_ALBUM_COUNT } = require('../src/genres');
+const {
+  genreNameToCandidates,
+  parseGenres,
+  splitGenreInput,
+  normalizeGenre,
+  clampCount,
+  MAX_ALBUM_COUNT,
+} = require('../src/genres');
+
+test('normalizeGenre folds case / hyphen / slash-spacing / ampersand+and', () => {
+  assert.strictEqual(normalizeGenre('Trip-Hop'), normalizeGenre('Trip Hop'));
+  assert.strictEqual(normalizeGenre('Drum & Bass'), normalizeGenre('drum and bass'));
+  assert.strictEqual(normalizeGenre('Pop / Rock'), normalizeGenre('Pop/Rock'));
+  assert.strictEqual(normalizeGenre('  HEAVY   METAL '), 'heavy metal');
+  // distinct genres stay distinct
+  assert.notStrictEqual(normalizeGenre('Jazz'), normalizeGenre('Rock'));
+});
+
+test('splitGenreInput splits on comma/newline only, keeping "&" genres whole', () => {
+  assert.deepStrictEqual(splitGenreInput('Drum & Bass'), ['Drum & Bass']);
+  assert.deepStrictEqual(splitGenreInput('Metal, Electronic'), ['Metal', 'Electronic']);
+  assert.deepStrictEqual(splitGenreInput('Metal\nElectronic'), ['Metal', 'Electronic']);
+  // "&" and ";" are NOT separators
+  assert.deepStrictEqual(splitGenreInput('R&B; Soul'), ['R&B; Soul']);
+  assert.deepStrictEqual(splitGenreInput('  ,, '), []);
+});
+
+test('genreNameToCandidates resolves subgenre aliases', () => {
+  assert.deepStrictEqual(genreNameToCandidates('death metal'), [
+    ['Pop/Rock', 'Heavy Metal', 'Death Metal'],
+    ['Heavy Metal', 'Death Metal'],
+    ['Death Metal'],
+  ]);
+  // ampersand-containing subgenre resolves under Electronic
+  assert.deepStrictEqual(genreNameToCandidates('Drum & Bass'), [
+    ['Electronic', 'Drum & Bass'],
+    ['Drum & Bass'],
+  ]);
+  // Ambient drills through Electronic
+  assert.deepStrictEqual(genreNameToCandidates('Ambient'), [['Electronic', 'Ambient'], ['Ambient']]);
+});
+
+test('genreNameToCandidates applies synonyms', () => {
+  // "progressive rock" -> canonical "Prog Rock" -> its alias drill paths
+  assert.deepStrictEqual(genreNameToCandidates('progressive rock'), [
+    ['Pop/Rock', 'Prog-Rock'],
+    ['Pop/Rock', 'Progressive Rock'],
+    ['Prog-Rock'],
+    ['Progressive Rock'],
+  ]);
+  // "rhythm and blues" -> "R&B" (literal, single level)
+  assert.deepStrictEqual(genreNameToCandidates('rhythm and blues'), [['R&B']]);
+});
 
 test('genreNameToCandidates maps preset labels to their candidate paths', () => {
   assert.deepStrictEqual(genreNameToCandidates('Jazz'), [['Jazz']]);
@@ -44,7 +96,7 @@ test('genreNameToCandidates maps preset labels to their candidate paths', () => 
   ]);
   assert.deepStrictEqual(genreNameToCandidates('Trip-Hop'), [['Trip-Hop'], ['Electronic', 'Trip-Hop']]);
   // unknown genre -> single literal path
-  assert.deepStrictEqual(genreNameToCandidates('Ambient'), [['Ambient']]);
+  assert.deepStrictEqual(genreNameToCandidates('Bluegrass'), [['Bluegrass']]);
   assert.strictEqual(genreNameToCandidates(''), null);
 });
 
@@ -60,17 +112,21 @@ test('genreNameToCandidates supports explicit nested "Parent > Child" paths', ()
   ]);
 });
 
-test('parseGenres splits on comma / & / semicolon and resolves each', () => {
+test('parseGenres splits on comma / newline and resolves each', () => {
   assert.strictEqual(parseGenres(''), null);
   assert.strictEqual(parseGenres(null), null);
   assert.deepStrictEqual(parseGenres('Jazz'), [[['Jazz']]]);
-  assert.deepStrictEqual(parseGenres('Metal & Electronic'), [
+  assert.deepStrictEqual(parseGenres('Metal, Electronic'), [
     [['Metal'], ['Heavy Metal'], ['Pop/Rock', 'Heavy Metal'], ['Pop/Rock', 'Metal']],
     [['Electronic']],
   ]);
   assert.deepStrictEqual(parseGenres(['Jazz', 'Electronic']), [[['Jazz']], [['Electronic']]]);
   // extra separators / whitespace are ignored
-  assert.deepStrictEqual(parseGenres(' Jazz ,, ; Electronic '), [[['Jazz']], [['Electronic']]]);
+  assert.deepStrictEqual(parseGenres(' Jazz ,,  Electronic '), [[['Jazz']], [['Electronic']]]);
+  // "&" is NOT a separator — "Drum & Bass" is a single genre
+  assert.deepStrictEqual(parseGenres('Drum & Bass'), [
+    [['Electronic', 'Drum & Bass'], ['Drum & Bass']],
+  ]);
 });
 
 test('clampCount coerces to an integer in [1, MAX]', () => {

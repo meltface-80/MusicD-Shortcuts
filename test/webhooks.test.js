@@ -3,7 +3,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
 const { DatabaseSync } = require('node:sqlite');
-const { initSchema } = require('../src/db/database');
+const { initSchema, migrate } = require('../src/db/database');
 const { WebhooksRepo } = require('../src/db/webhooks');
 
 const CONFIG = { DB_PATH: ':memory:', PUBLIC_BASE_URL: 'http://example.test:3000' };
@@ -124,4 +124,71 @@ test('create + toJson round-trips count and multi-genre sets', () => {
   const plain = repo.create({ name: 'Plain' });
   assert.strictEqual(plain.count, 1);
   assert.strictEqual(plain.genres, null);
+});
+
+test('create + toJson round-trips raw genreNames', () => {
+  const repo = makeRepo();
+  const wh = repo.create({
+    name: 'DnB',
+    genre: 'Drum & Bass',
+    genreNames: ['Drum & Bass'],
+    count: 1,
+  });
+  assert.deepStrictEqual(wh.genreNames, ['Drum & Bass']);
+  assert.strictEqual(wh.genre, 'Drum & Bass');
+
+  const fetched = repo.getBySlug(wh.slug);
+  assert.deepStrictEqual(fetched.genreNames, ['Drum & Bass']);
+
+  // update can change genreNames
+  const updated = repo.update(wh.id, { genreNames: ['Jazz', 'Metal'] });
+  assert.deepStrictEqual(updated.genreNames, ['Jazz', 'Metal']);
+
+  // null clears them
+  const cleared = repo.update(wh.id, { genreNames: null });
+  assert.strictEqual(cleared.genreNames, null);
+
+  // omitted on create -> null
+  const plain = repo.create({ name: 'No Names' });
+  assert.strictEqual(plain.genreNames, null);
+});
+
+test('seedPresets stores genreNames for single-genre presets, null for others', () => {
+  const repo = makeRepo();
+  repo.seedPresets();
+  assert.deepStrictEqual(repo.getBySlug('random-jazz').genreNames, ['Jazz']);
+  assert.deepStrictEqual(repo.getBySlug('random-metal').genreNames, ['Metal']);
+  assert.strictEqual(repo.getBySlug('any-album').genreNames, null);
+  assert.strictEqual(repo.getBySlug('5-random-albums').genreNames, null);
+});
+
+test('migration adds genre_names and backfills from the legacy genre label', () => {
+  // Simulate an OLD database WITHOUT the genre_names column.
+  const db = new DatabaseSync(':memory:');
+  db.exec(`
+    CREATE TABLE webhooks (
+      id TEXT PRIMARY KEY, name TEXT NOT NULL, slug TEXT NOT NULL UNIQUE,
+      genre TEXT, genre_path TEXT, genres TEXT,
+      album_count INTEGER NOT NULL DEFAULT 1,
+      zone_id TEXT, zone_name TEXT, is_preset INTEGER NOT NULL DEFAULT 0,
+      created_at INTEGER NOT NULL
+    );
+  `);
+  db.prepare(
+    'INSERT INTO webhooks (id, name, slug, genre, album_count, is_preset, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  ).run('a1', 'Old Combo', 'old-combo', 'Metal & Electronic', 1, 0, Date.now());
+  db.prepare(
+    'INSERT INTO webhooks (id, name, slug, genre, album_count, is_preset, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  ).run('a2', 'Any', 'any', null, 1, 0, Date.now());
+
+  migrate(db);
+
+  const cols = db.prepare('PRAGMA table_info(webhooks)').all().map((r) => r.name);
+  assert.ok(cols.includes('genre_names'), 'genre_names column added');
+
+  const combo = db.prepare('SELECT genre_names FROM webhooks WHERE id = ?').get('a1');
+  assert.deepStrictEqual(JSON.parse(combo.genre_names), ['Metal', 'Electronic']);
+
+  const any = db.prepare('SELECT genre_names FROM webhooks WHERE id = ?').get('a2');
+  assert.strictEqual(any.genre_names, null);
 });

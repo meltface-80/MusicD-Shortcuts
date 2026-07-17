@@ -1,6 +1,7 @@
 'use strict';
 
 const crypto = require('node:crypto');
+const { normalizeGenre } = require('../genres');
 
 /**
  * @typedef {object} RoonManagerLike
@@ -15,12 +16,16 @@ function randInt(max) {
   return Math.floor(Math.random() * max);
 }
 
-/** Case-insensitive, trimmed exact title match. */
+/**
+ * Normalization-aware title match. Uses `normalizeGenre`, so browse-level genre
+ * matching folds hyphen/space/`&`/case/slash differences ("Trip-Hop" == "Trip
+ * Hop"); it is harmless for action names ("Play Now" etc.).
+ */
 function matchTitle(item, title) {
   return (
     item &&
     typeof item.title === 'string' &&
-    item.title.trim().toLowerCase() === String(title).trim().toLowerCase()
+    normalizeGenre(item.title) === normalizeGenre(title)
   );
 }
 

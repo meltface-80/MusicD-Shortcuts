@@ -165,9 +165,38 @@ target a **nested subgenre** by typing `Parent > Child` (e.g. `Pop/Rock > Heavy
 Metal`) anywhere a genre is entered — `genreNameToCandidates` turns `>` into a
 multi-level drill path. The `Genres` list only shows genres that actually have
 library content, so a missing genre fails gracefully with a clear message.
-Webhook triggers **re-resolve genre sets from the stored label at play time**
-(`genreSetsFor`), so preset/taxonomy fixes reach existing webhooks without
-recreating them. Genre strings are **data, not hardcoded logic**.
+Genre strings are **data, not hardcoded logic**.
+
+**Matching is normalized, not raw-exact.** `normalizeGenre(s)` (in
+`src/genres.js`) folds case, trims, turns `-` into a space (so `Trip-Hop` ==
+`Trip Hop`), collapses whitespace around `/` (`Pop / Rock` == `Pop/Rock`), and
+folds `&`/`and` to a single canonical (`Drum & Bass` == `drum and bass`).
+`albumPlayer.matchTitle` compares browse-item titles via `normalizeGenre`, so
+hyphen/space/`&`/case/slash differences between the library's title and the
+requested genre no longer cause a miss.
+
+**`genreNameToCandidates` cascade:** (1) `Parent > Child` → explicit drill path;
+(2) `SYNONYMS` (e.g. `progressive rock` → `Prog Rock`, `rhythm and blues` →
+`R&B`); (3) PRESET label match (via `normalizeGenre`); (4) `SUBGENRE_ALIASES`
+(e.g. `death metal` → `[['Pop/Rock','Heavy Metal','Death Metal'], …]`, electronic
+subgenres under `Electronic`, bebop/hard-bop under `Jazz`); (5) literal
+`[[name]]`. All three (`normalizeGenre`, `SUBGENRE_ALIASES`, `SYNONYMS`) are
+exported and unit-tested.
+
+**Multi-genre separator is the COMMA (and newline), NOT `&`.** `splitGenreInput`
+splits on `,`/newline only, so genre names that contain an ampersand
+(`Drum & Bass`, `R&B`, `Rhythm & Blues`) survive as a single genre instead of
+being split apart. `parseGenres` uses `splitGenreInput` for strings.
+
+**Raw genre names are stored (`genre_names` column) and re-resolved at play
+time.** `create`/`update` persist the raw name array as JSON; `WebhooksRepo`
+seeds single-genre presets with `genreNames:[label]` (Any/5/10-album presets stay
+`null`). Old DBs get an `ALTER TABLE … ADD COLUMN genre_names` migration plus a
+one-time backfill that derives names from the legacy `genre` label (split on the
+OLD `,;&` separators). Webhook triggers **re-resolve genre sets from
+`genreNames` at play time** (`genreSetsFor` → `genreNames.map(genreNameToCandidates)`),
+so alias/preset/taxonomy fixes reach existing webhooks without recreating them;
+older rows with no `genreNames` fall back to the stored `genres`/`genrePath`.
 
 ## Updates & versioning
 
