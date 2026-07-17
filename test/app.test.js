@@ -142,6 +142,47 @@ test('GET /random-album?genre=Jazz plays', async () => {
   assert.match(await res.text(), /Jazz Album/);
 });
 
+test('POST with genres:["Drum & Bass"] stores one genre name and label', async () => {
+  const res = await fetch(`${ctx.base}/api/webhooks`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: 'My DnB', genres: ['Drum & Bass'], count: 1 }),
+  });
+  assert.strictEqual(res.status, 201);
+  const { webhook } = await res.json();
+  // "&" is NOT a separator: a single genre is stored, label uses comma-join.
+  assert.deepStrictEqual(webhook.genreNames, ['Drum & Bass']);
+  assert.strictEqual(webhook.genre, 'Drum & Bass');
+  await fetch(`${ctx.base}/api/webhooks/${webhook.id}`, { method: 'DELETE' });
+});
+
+test('POST with multiple genres joins the label with a comma', async () => {
+  const res = await fetch(`${ctx.base}/api/webhooks`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: 'Combo', genres: ['Metal', 'Electronic'], count: 1 }),
+  });
+  const { webhook } = await res.json();
+  assert.deepStrictEqual(webhook.genreNames, ['Metal', 'Electronic']);
+  assert.strictEqual(webhook.genre, 'Metal, Electronic');
+  await fetch(`${ctx.base}/api/webhooks/${webhook.id}`, { method: 'DELETE' });
+});
+
+test('an "existing" webhook without genreNames still resolves via the fallback', async () => {
+  // Create a pre-genre_names shaped row directly: genre + genres set, no names.
+  const created = ctx.repo.create({
+    name: 'Legacy Jazz',
+    genre: 'Jazz',
+    genres: [[['Jazz']]],
+    slug: 'legacy-jazz',
+  });
+  assert.strictEqual(created.genreNames, null);
+  const res = await fetch(`${ctx.base}/w/legacy-jazz`);
+  assert.strictEqual(res.status, 200);
+  assert.match(await res.text(), /Jazz Album/);
+  await fetch(`${ctx.base}/api/webhooks/${created.id}`, { method: 'DELETE' });
+});
+
 test('trigger returns 503 when no core is paired', async () => {
   const unpaired = await startApp({ paired: false });
   try {

@@ -1,6 +1,6 @@
 'use strict';
 
-const { PRESETS, parseGenres, clampCount, MAX_ALBUM_COUNT } = require('../genres');
+const { PRESETS, parseGenres, splitGenreInput, clampCount, MAX_ALBUM_COUNT } = require('../genres');
 
 /**
  * Human-friendly name for a generated webhook.
@@ -116,10 +116,12 @@ function buildLayout(settings, { webhooksRepo, config, lastUpdate }) {
       {
         type: 'label',
         title:
-          `Type one or more genres, e.g. "Metal, Electronic" (each album is drawn ` +
-          `from a random one). Presets: ${presetNames}. For a subgenre, use ` +
-          `"Parent > Child", e.g. "Pop/Rock > Heavy Metal". Leave blank for any ` +
-          `genre. Set the count for a multi-album queue, then Save to create the webhook.`,
+          `Separate multiple genres with a COMMA, e.g. "Metal, Electronic" (each ` +
+          `album is drawn from a random one). A genre that contains "&" — like ` +
+          `"Drum & Bass" or "R&B" — counts as ONE genre. Presets: ${presetNames}. ` +
+          `For a subgenre, use "Parent > Child", e.g. "Pop/Rock > Heavy Metal". ` +
+          `Leave blank for any genre. Set the count for a multi-album queue, then ` +
+          `Save to create the webhook.`,
       },
       {
         type: 'label',
@@ -229,13 +231,13 @@ function makeSettingsService(roon, ctx) {
     const zoneId = zoneWidgetToId(incoming.defaultZone);
 
     if (genresStr || count > 1) {
-      const names = genresStr
-        ? genresStr.split(/[,;&\n]+/).map((s) => s.trim()).filter(Boolean)
-        : [];
-      const label = names.length ? names.join(' & ') : null;
+      // Split on comma/newline only, so "Drum & Bass" stays a single genre.
+      const names = genresStr ? splitGenreInput(genresStr) : [];
+      const label = names.length ? names.join(', ') : null;
       webhooksRepo.create({
         name: webhookName(count, label),
         genre: label,
+        genreNames: names.length ? names : null,
         genres: names.length ? parseGenres(names) : null,
         count,
         zoneId,

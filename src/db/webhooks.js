@@ -51,11 +51,13 @@ class WebhooksRepo {
     if (!row) return null;
     const genrePath = parseJson(row.genre_path);
     const genres = parseJson(row.genres);
+    const genreNames = parseJson(row.genre_names);
     return {
       id: row.id,
       name: row.name,
       slug: row.slug,
       genre: row.genre == null ? null : row.genre,
+      genreNames,
       genrePath,
       genres,
       count: row.album_count == null ? 1 : Number(row.album_count),
@@ -116,6 +118,7 @@ class WebhooksRepo {
     const {
       name,
       genre = null,
+      genreNames = null,
       genrePath = null,
       genres = null,
       count = 1,
@@ -129,6 +132,7 @@ class WebhooksRepo {
 
     const rowId = id || crypto.randomUUID().slice(0, 8);
     const rowSlug = slug ? (this._slugExists(slug) ? this._uniqueSlug(slug) : slug) : this._uniqueSlug(name);
+    const genreNamesJson = genreNames == null ? null : JSON.stringify(genreNames);
     const genrePathJson = genrePath == null ? null : JSON.stringify(genrePath);
     const genresJson = genres == null ? null : JSON.stringify(genres);
     const albumCount = Math.max(1, Math.floor(Number(count)) || 1);
@@ -136,10 +140,10 @@ class WebhooksRepo {
 
     this.db
       .prepare(
-        `INSERT INTO webhooks (id, name, slug, genre, genre_path, genres, album_count, zone_id, zone_name, is_preset, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO webhooks (id, name, slug, genre, genre_names, genre_path, genres, album_count, zone_id, zone_name, is_preset, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
-      .run(rowId, String(name), rowSlug, genre, genrePathJson, genresJson, albumCount, zoneId, zoneName, isPreset ? 1 : 0, createdAt);
+      .run(rowId, String(name), rowSlug, genre, genreNamesJson, genrePathJson, genresJson, albumCount, zoneId, zoneName, isPreset ? 1 : 0, createdAt);
 
     return this.get(rowId);
   }
@@ -168,6 +172,7 @@ class WebhooksRepo {
       set('slug', finalSlug);
     }
     if ('genre' in partial) set('genre', partial.genre == null ? null : String(partial.genre));
+    if ('genreNames' in partial) set('genre_names', partial.genreNames == null ? null : JSON.stringify(partial.genreNames));
     if ('genrePath' in partial) set('genre_path', partial.genrePath == null ? null : JSON.stringify(partial.genrePath));
     if ('genres' in partial) set('genres', partial.genres == null ? null : JSON.stringify(partial.genres));
     if ('count' in partial) set('album_count', Math.max(1, Math.floor(Number(partial.count)) || 1));
@@ -211,6 +216,7 @@ class WebhooksRepo {
       this.create({
         name,
         genre: preset.genrePath ? preset.label : null,
+        genreNames: preset.genrePath ? [preset.label] : null,
         genrePath: preset.genrePath,
         zoneId: null,
         zoneName: null,

@@ -237,7 +237,8 @@
     Array.prototype.forEach.call(checked, function (cb) { names.push(cb.value); });
     var custom = els.customGenre.value.trim();
     if (custom) {
-      custom.split(/[,;&\n]+/).forEach(function (s) { var v = s.trim(); if (v) names.push(v); });
+      // Split on comma/newline only, so "Drum & Bass" stays a single genre.
+      custom.split(/[,\n]+/).forEach(function (s) { var v = s.trim(); if (v) names.push(v); });
     }
 
     var payload = { name: name, count: count };

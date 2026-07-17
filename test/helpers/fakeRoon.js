@@ -70,7 +70,9 @@ function buildDefaultTree(opts = {}) {
             title: 'Electronic',
             items: [
               { title: 'Albums', items: mkAlbums('Electronic', 4) },
-              { title: 'Trip-Hop', items: [{ title: 'Albums', items: mkAlbums('Trip-Hop', 2) }] },
+              // Node title is SPACED ("Trip Hop") while requests use the
+              // hyphenated "Trip-Hop" — exercises normalization-aware matching.
+              { title: 'Trip Hop', items: [{ title: 'Albums', items: mkAlbums('Trip-Hop', 2) }] },
             ],
           },
           {
@@ -79,7 +81,15 @@ function buildDefaultTree(opts = {}) {
             title: 'Pop/Rock',
             items: [
               { title: 'Albums', items: mkAlbums('Pop/Rock', 4) },
-              { title: 'Heavy Metal', items: [{ title: 'Albums', items: mkAlbums('Heavy Metal', 3) }] },
+              {
+                title: 'Heavy Metal',
+                items: [
+                  { title: 'Albums', items: mkAlbums('Heavy Metal', 3) },
+                  // A deeper subgenre so the "death metal" alias drill path
+                  // (Pop/Rock > Heavy Metal > Death Metal) can be reached.
+                  { title: 'Death Metal', items: [{ title: 'Albums', items: mkAlbums('Death Metal', 2) }] },
+                ],
+              },
               { title: 'Metal', items: [{ title: 'Albums', items: mkAlbums('Metal', 3) }] },
             ],
           },

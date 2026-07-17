@@ -8,7 +8,29 @@ const {
   playRandomAlbums,
   resolveZone,
 } = require('../src/roon/albumPlayer');
+const { genreNameToCandidates } = require('../src/genres');
 const { createFakeRoonManager, buildDefaultTree } = require('./helpers/fakeRoon');
+
+/* --- normalization-aware matching --------------------------------------- */
+
+test('a hyphenated "Trip-Hop" request matches the spaced "Trip Hop" library node', async () => {
+  const roonManager = createFakeRoonManager();
+  // The fake library node is titled "Trip Hop" (spaced); the request is
+  // hyphenated. normalizeGenre folds them so matching still reaches it.
+  const result = await playRandomAlbum({
+    roonManager,
+    genrePath: ['Electronic', 'Trip-Hop'],
+    zoneId: 'zone-1',
+  });
+  assert.match(result.album, /^Trip-Hop Album \d+$/);
+});
+
+test('the "death metal" alias reaches Pop/Rock > Heavy Metal > Death Metal', async () => {
+  const roonManager = createFakeRoonManager();
+  const candidates = genreNameToCandidates('death metal');
+  const result = await playByGenrePathCandidates({ roonManager, candidates, zoneId: 'zone-1' });
+  assert.match(result.album, /^Death Metal Album \d+$/);
+});
 
 test('any-album plays and returns an album title', async () => {
   const roonManager = createFakeRoonManager();

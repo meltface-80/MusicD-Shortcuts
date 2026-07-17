@@ -2,7 +2,7 @@
 
 const express = require('express');
 const { playRandomAlbums } = require('../../roon/albumPlayer');
-const { parseGenres, clampCount } = require('../../genres');
+const { parseGenres, clampCount, genreNameToCandidates } = require('../../genres');
 
 /** Send a plain-text response (iOS Shortcuts shows the body). */
 function text(res, status, message) {
@@ -11,14 +11,15 @@ function text(res, status, message) {
 
 /**
  * Resolve a webhook's stored config into the genre sets the player expects.
- * Prefer re-resolving from the genre label so webhooks pick up preset/taxonomy
- * fixes (e.g. Metal now drills through Pop/Rock) without being recreated; fall
- * back to the stored genre sets / path.
+ * Prefer re-resolving from the stored raw genre NAMES so webhooks pick up
+ * alias/preset/taxonomy fixes (e.g. Metal now drills through Pop/Rock, or a new
+ * subgenre alias) without being recreated. Fall back to the pre-`genre_names`
+ * stored genre sets / path for older ("existing") webhooks.
  */
 function genreSetsFor(webhook) {
-  if (webhook.genre) {
-    const fromLabel = parseGenres(webhook.genre);
-    if (fromLabel) return fromLabel;
+  if (webhook.genreNames && webhook.genreNames.length) {
+    const sets = webhook.genreNames.map(genreNameToCandidates).filter(Boolean);
+    if (sets.length) return sets;
   }
   if (webhook.genres && webhook.genres.length) return webhook.genres;
   if (webhook.genrePath) return [webhook.genrePath];
