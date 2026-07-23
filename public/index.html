@@ -65,8 +65,9 @@
 
       <div class="field">
         <label for="wh-genre-custom">Custom genres (optional)</label>
-        <input id="wh-genre-custom" name="genreCustom" type="text"
+        <input id="wh-genre-custom" name="genreCustom" type="text" list="genre-suggestions"
                placeholder="Comma-separated, e.g. Ambient, Drum &amp; Bass" autocomplete="off" />
+        <datalist id="genre-suggestions"></datalist>
         <p class="field__hint">Added to the selection above. Separate genres with a comma — a genre containing “&amp;” (like Drum &amp; Bass or R&amp;B) counts as one. Use “Parent &gt; Child” for a subgenre. Must match genres in your Roon library.</p>
       </div>
 

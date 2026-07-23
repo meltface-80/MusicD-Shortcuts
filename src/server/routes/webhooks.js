@@ -2,23 +2,62 @@
 
 const express = require('express');
 const { playRandomAlbums } = require('../../roon/albumPlayer');
-const { parseGenres, clampCount, genreNameToCandidates } = require('../../genres');
+const { parseGenres, clampCount, genreNameToCandidates, splitGenreInput, normalizeGenre } = require('../../genres');
 
 /** Send a plain-text response (iOS Shortcuts shows the body). */
 function text(res, status, message) {
   res.status(status).type('text/plain').send(message);
 }
 
+/** True when two title-paths are equal (normalization-aware). */
+function samePath(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+  return a.every((s, i) => normalizeGenre(s) === normalizeGenre(b[i]));
+}
+
+/**
+ * Resolve ONE genre NAME into an ordered candidate-path array. The live library
+ * index path (Phase 2) is tried FIRST, then the Phase 1 static candidates
+ * (deduped against the live path). If the index is empty / mis-enumerated /
+ * absent, this falls through to Phase 1 alone — no regression.
+ * @param {object} roonManager
+ * @param {string} name
+ * @returns {Promise<string[][]|null>} candidate paths, or null when empty.
+ */
+async function enrichName(roonManager, name) {
+  const staticCandidates = genreNameToCandidates(name) || [];
+  let candidates = staticCandidates;
+  if (roonManager && typeof roonManager.resolveGenreName === 'function') {
+    let livePath = null;
+    try {
+      livePath = await roonManager.resolveGenreName(name);
+    } catch {
+      livePath = null;
+    }
+    if (livePath && livePath.length) {
+      candidates = [livePath, ...staticCandidates.filter((c) => !samePath(c, livePath))];
+    }
+  }
+  return candidates && candidates.length ? candidates : null;
+}
+
 /**
  * Resolve a webhook's stored config into the genre sets the player expects.
- * Prefer re-resolving from the stored raw genre NAMES so webhooks pick up
- * alias/preset/taxonomy fixes (e.g. Metal now drills through Pop/Rock, or a new
- * subgenre alias) without being recreated. Fall back to the pre-`genre_names`
- * stored genre sets / path for older ("existing") webhooks.
+ * Prefer re-resolving from the stored raw genre NAMES — trying the live library
+ * index path first (so a genre that only exists as a nested subgenre resolves
+ * precisely), then the Phase 1 static aliases/presets. Fall back to the
+ * pre-`genre_names` stored genre sets / path for older ("existing") webhooks.
+ * @param {object} roonManager
+ * @param {object} webhook
+ * @returns {Promise<Array|null>}
  */
-function genreSetsFor(webhook) {
+async function resolveGenreSets(roonManager, webhook) {
   if (webhook.genreNames && webhook.genreNames.length) {
-    const sets = webhook.genreNames.map(genreNameToCandidates).filter(Boolean);
+    const sets = [];
+    for (const name of webhook.genreNames) {
+      const candidates = await enrichName(roonManager, name);
+      if (candidates) sets.push(candidates);
+    }
     if (sets.length) return sets;
   }
   if (webhook.genres && webhook.genres.length) return webhook.genres;
@@ -70,7 +109,7 @@ function triggerRoutes({ roonManager, webhooksRepo }) {
     await runPlay(
       roonManager,
       {
-        genreSets: genreSetsFor(webhook),
+        genreSets: await resolveGenreSets(roonManager, webhook),
         count: webhook.count || 1,
         zoneId: webhook.zoneId || null,
         label: webhook.genre || null,
@@ -83,7 +122,24 @@ function triggerRoutes({ roonManager, webhooksRepo }) {
   // ?genres=Metal,Electronic (multi), and ?count=N.
   router.get('/random-album', async (req, res) => {
     const raw = req.query.genres != null ? req.query.genres : req.query.genre;
-    const genreSets = parseGenres(raw);
+    // Derive genre NAMES, then enrich each with the live index (Phase 1 static
+    // stays the fallback). Fall back to parseGenres(raw) when nothing enriches.
+    let names = null;
+    if (Array.isArray(raw)) names = raw.map((s) => String(s == null ? '' : s).trim()).filter(Boolean);
+    else if (typeof raw === 'string') names = splitGenreInput(raw);
+
+    let genreSets;
+    if (names && names.length) {
+      const sets = [];
+      for (const name of names) {
+        const candidates = await enrichName(roonManager, name);
+        if (candidates) sets.push(candidates);
+      }
+      genreSets = sets.length ? sets : parseGenres(raw);
+    } else {
+      genreSets = parseGenres(raw);
+    }
+
     const count = clampCount(req.query.count || 1);
     const label = typeof raw === 'string' && raw.trim() ? raw.trim() : null;
     await runPlay(roonManager, { genreSets, count, zoneId: null, label }, res);

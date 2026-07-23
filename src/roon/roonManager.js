@@ -2,7 +2,11 @@
 
 const { makeBrowseClient } = require('./browseClient');
 const { makeSettingsService } = require('./settingsLayout');
+const { buildGenreIndex, matchGenreName } = require('./genreIndex');
 const { checkForUpdate } = require('../updateChecker');
+
+/** How long a built live genre index stays fresh before a rebuild. */
+const GENRE_INDEX_TTL_MS = 60 * 60 * 1000;
 
 /**
  * Lazily require the node-roon-api packages. Kept out of module scope so tests
@@ -49,6 +53,10 @@ class RoonManager {
     /** @type {Map<string, object>} zone_id -> raw zone */
     this._zones = new Map();
     this._defaultZoneId = null;
+
+    // Cached live genre index (Phase 2).
+    this._genreIndex = null;
+    this._genreIndexAt = 0;
 
     // Restore a persisted default zone if available.
     try {
@@ -128,6 +136,9 @@ class RoonManager {
     this.transport = null;
     this._browseClient = null;
     this._zones.clear();
+    // Drop the cached genre index; it rebuilds after re-pair.
+    this._genreIndex = null;
+    this._genreIndexAt = 0;
     this._setStatus('Roon Core unpaired.', true);
     if (typeof this.onZonesChanged === 'function') this.onZonesChanged(this.getZones());
   }
@@ -221,6 +232,42 @@ class RoonManager {
   load(opts) {
     if (!this._browseClient) return Promise.reject(new Error('No Roon Core paired'));
     return this._browseClient.load(opts);
+  }
+
+  /**
+   * Return the live genre index, building (and caching, TTL 1h) it on demand.
+   * Best-effort: never throws — on a build error it returns the last cached
+   * index, or an empty one. Returns an empty index when not paired.
+   * @returns {Promise<{genres:Array<{name:string,path:string[]}>, builtAt:number}>}
+   */
+  async getGenreIndex() {
+    if (!this.isPaired()) return { genres: [], builtAt: 0 };
+    const now = Date.now();
+    if (this._genreIndex && now - this._genreIndexAt < GENRE_INDEX_TTL_MS) {
+      return this._genreIndex;
+    }
+    try {
+      const index = await buildGenreIndex(this, { maxDepth: 3 });
+      this._genreIndex = index;
+      this._genreIndexAt = Date.now();
+      return index;
+    } catch {
+      return this._genreIndex || { genres: [], builtAt: 0 };
+    }
+  }
+
+  /**
+   * Best-effort resolution of a genre NAME to an exact library title-path via
+   * the live index. Never throws; returns null when nothing matches.
+   * @param {string} name
+   * @returns {Promise<string[]|null>}
+   */
+  async resolveGenreName(name) {
+    try {
+      return matchGenreName(await this.getGenreIndex(), name);
+    } catch {
+      return null;
+    }
   }
 }
 

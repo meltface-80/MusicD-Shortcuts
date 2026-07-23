@@ -28,6 +28,30 @@ function apiRoutes({ roonManager, webhooksRepo }) {
     res.json({ presets: PRESETS.map((p) => ({ key: p.key, label: p.label, genrePath: p.genrePath })) });
   });
 
+  // Live genre library (Phase 2). `available:false` with genres:[] when
+  // unpaired, when the index is empty, or when the manager can't provide one.
+  router.get('/genres/library', async (req, res) => {
+    try {
+      if (typeof roonManager.getGenreIndex !== 'function') {
+        res.json({ available: false, genres: [] });
+        return;
+      }
+      const paired = typeof roonManager.isPaired === 'function' && roonManager.isPaired();
+      if (!paired) {
+        res.json({ available: false, genres: [] });
+        return;
+      }
+      const index = await roonManager.getGenreIndex();
+      const genres = (index && index.genres) || [];
+      res.json({
+        available: genres.length > 0,
+        genres: genres.map((g) => ({ name: g.name, path: g.path })),
+      });
+    } catch {
+      res.json({ available: false, genres: [] });
+    }
+  });
+
   router.get('/webhooks', (req, res) => {
     res.json({ webhooks: webhooksRepo.list() });
   });

@@ -183,6 +183,67 @@ test('an "existing" webhook without genreNames still resolves via the fallback',
   await fetch(`${ctx.base}/api/webhooks/${created.id}`, { method: 'DELETE' });
 });
 
+test('a genreNames webhook resolves a nested subgenre via the live index', async () => {
+  // "Cool Jazz" exists only as Jazz > Cool Jazz in the library and is NOT in any
+  // Phase 1 alias, so ONLY the live index can reach it.
+  const created = ctx.repo.create({
+    name: 'Cool Jazz Hook',
+    genreNames: ['Cool Jazz'],
+    slug: 'cool-jazz-hook',
+  });
+  const res = await fetch(`${ctx.base}/w/cool-jazz-hook`);
+  assert.strictEqual(res.status, 200);
+  assert.match(await res.text(), /Cool Jazz Album/);
+  await fetch(`${ctx.base}/api/webhooks/${created.id}`, { method: 'DELETE' });
+});
+
+test('GET /api/genres/library lists the live library genres when paired', async () => {
+  const res = await fetch(`${ctx.base}/api/genres/library`);
+  assert.strictEqual(res.status, 200);
+  const body = await res.json();
+  assert.strictEqual(body.available, true);
+  assert.ok(Array.isArray(body.genres));
+  assert.ok(body.genres.some((g) => g.name === 'Cool Jazz'));
+});
+
+test('a genreNames webhook falls back to Phase 1 when the manager lacks the live index', async () => {
+  // Build an app whose roonManager has NO resolveGenreName/getGenreIndex — the
+  // genreNames webhook must still play via Phase 1 static resolution.
+  const repo = makeRepo();
+  const roonManager = createFakeRoonManager({ paired: true });
+  delete roonManager.resolveGenreName;
+  delete roonManager.getGenreIndex;
+  const app = createApp({ roonManager, webhooksRepo: repo, config: CONFIG });
+  await new Promise((resolve) => {
+    const server = app.listen(0, async () => {
+      try {
+        const base = `http://127.0.0.1:${server.address().port}`;
+        repo.create({ name: 'Static Jazz', genreNames: ['Jazz'], slug: 'static-jazz' });
+        const res = await fetch(`${base}/w/static-jazz`);
+        assert.strictEqual(res.status, 200);
+        assert.match(await res.text(), /Jazz Album/);
+        // The library endpoint reports unavailable without a genre index method.
+        const lib = await fetch(`${base}/api/genres/library`);
+        assert.deepStrictEqual(await lib.json(), { available: false, genres: [] });
+      } finally {
+        server.close(resolve);
+      }
+    });
+  });
+});
+
+test('GET /api/genres/library reports unavailable when unpaired', async () => {
+  const unpaired = await startApp({ paired: false });
+  try {
+    const res = await fetch(`${unpaired.base}/api/genres/library`);
+    const body = await res.json();
+    assert.strictEqual(body.available, false);
+    assert.deepStrictEqual(body.genres, []);
+  } finally {
+    await unpaired.close();
+  }
+});
+
 test('trigger returns 503 when no core is paired', async () => {
   const unpaired = await startApp({ paired: false });
   try {

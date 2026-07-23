@@ -1,5 +1,7 @@
 'use strict';
 
+const { buildGenreIndex, matchGenreName } = require('../../src/roon/genreIndex');
+
 /**
  * An in-memory fake of the Roon browse tree + a roonManager that walks it,
  * matching the interface albumPlayer/routes depend on:
@@ -65,7 +67,15 @@ function buildDefaultTree(opts = {}) {
       {
         title: 'Genres',
         items: [
-          { title: 'Jazz', items: [{ title: 'Albums', items: mkAlbums('Jazz', 3) }] },
+          {
+            title: 'Jazz',
+            items: [
+              { title: 'Albums', items: mkAlbums('Jazz', 3) },
+              // "Cool Jazz" is deliberately NOT in any Phase 1 alias, so it can
+              // ONLY be resolved via the live genre index (proves Phase 2 value).
+              { title: 'Cool Jazz', items: [{ title: 'Albums', items: mkAlbums('Cool Jazz', 2) }] },
+            ],
+          },
           {
             title: 'Electronic',
             items: [
@@ -190,6 +200,14 @@ function createFakeRoonManager(config = {}) {
       const count = typeof opts.count === 'number' ? opts.count : items.length;
       const slice = items.slice(offset, offset + count);
       return Promise.resolve({ list: listOf(cur), offset, items: slice });
+    },
+
+    // Phase 2 — same surface the real RoonManager exposes, over this fake tree.
+    async getGenreIndex() {
+      return buildGenreIndex(manager, { maxDepth: 3 });
+    },
+    async resolveGenreName(name) {
+      return matchGenreName(await manager.getGenreIndex(), name);
     },
   };
 

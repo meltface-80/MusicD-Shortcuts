@@ -198,6 +198,28 @@ OLD `,;&` separators). Webhook triggers **re-resolve genre sets from
 so alias/preset/taxonomy fixes reach existing webhooks without recreating them;
 older rows with no `genreNames` fall back to the stored `genres`/`genrePath`.
 
+**Phase 2 — live genre index.** `src/roon/genreIndex.js` (`buildGenreIndex`,
+`matchGenreName`) enumerates the actual `Genres` hierarchy by **re-navigation
+from root** (browse `pop_all` → descend by `item_key`, never Roon's fragile
+`pop_levels`), returning `{ genres:[{name, path}], builtAt }` where `path` is the
+array of **exact library titles** (e.g. `['Pop/Rock','Heavy Metal','Death
+Metal']`). Every browse/load carries a per-request `multi_session_key` +
+`hierarchy:'browse'`. `RoonManager.getGenreIndex()` caches the built index (TTL 1
+hour; cleared on unpair, rebuilt after re-pair) and degrades gracefully — never
+throws, returns cached-or-empty on error; `RoonManager.resolveGenreName(name)`
+best-effort maps a name to an exact path via `matchGenreName` (exact name →
+shallowest, `Parent > Child` drill, then fuzzy startsWith/substring/token-overlap).
+Resolution now tries the **live index path FIRST, then Phase 1 static
+candidates** (`resolveGenreSets`/`enrichName` in `routes/webhooks.js`, applied to
+both `/w/:slug` and `/random-album`); an empty/mis-enumerated/absent index simply
+falls through to Phase 1, so **Phase 1 stays the offline fallback with no
+regression**. `GET /api/genres/library` → `{available, genres:[{name,path}]}`
+(`available:false` when unpaired/empty) feeds the PWA's `<datalist
+id="genre-suggestions">` autocomplete on the custom-genre input (nested genres
+suggested as `Parent > Child`). Fully unit-tested against the fake browse tree
+(`test/genreIndex.test.js`), which now includes a `Jazz > Cool Jazz` subgenre
+reachable **only** via the live index.
+
 ## Updates & versioning
 
 - **Manual update check in Roon settings** (bottom "Software update" group). A

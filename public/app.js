@@ -14,6 +14,7 @@
     count: document.getElementById("wh-count"),
     genreChecks: document.getElementById("genre-checks"),
     customGenre: document.getElementById("wh-genre-custom"),
+    genreSuggestions: document.getElementById("genre-suggestions"),
     zone: document.getElementById("wh-zone"),
     zoneHint: document.getElementById("zone-hint"),
     createBtn: document.getElementById("create-btn"),
@@ -85,6 +86,29 @@
       }
     } catch (e) {
       els.genreChecks.innerHTML = '<p class="field__hint">Couldn’t load genres — use the custom field below.</p>';
+    }
+  }
+
+  /* Fill the custom-genre datalist from the live Roon library index (Phase 2).
+     Nested genres use the "Parent > Child" value so they drill precisely; top-
+     level genres use their plain name. Fails silently if unavailable. */
+  async function loadGenreLibrary() {
+    if (!els.genreSuggestions) return;
+    try {
+      var data = await api("/api/genres/library");
+      if (!data || !data.available || !Array.isArray(data.genres)) return;
+      var frag = document.createDocumentFragment();
+      data.genres.forEach(function (g) {
+        if (!g || !g.name) return;
+        var value = Array.isArray(g.path) && g.path.length > 1 ? g.path.join(" > ") : g.name;
+        var opt = document.createElement("option");
+        opt.value = value;
+        frag.appendChild(opt);
+      });
+      els.genreSuggestions.innerHTML = "";
+      els.genreSuggestions.appendChild(frag);
+    } catch (e) {
+      /* leave the datalist empty when the library isn't available */
     }
   }
 
@@ -343,6 +367,7 @@
 
     loadStatus();
     loadGenreChecks();
+    loadGenreLibrary();
     loadZones();
     loadWebhooks();
 
